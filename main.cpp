@@ -81,6 +81,7 @@ int main() {
   pwmGauche.pulsewidth_us(0);
   char c='$';
   char oldCharacter = '$';
+  char lastTurn = '$';
   float timelapsed = 0.0;
   int timePush = 0;
 
@@ -109,43 +110,33 @@ int main() {
       timelapsed = 0;
     }
 
-//DEBUT ANCIEN CODE CORRECTIF
-//    //droite a plus tourne; on peut augmenter gauche
-//    bool gaucheUp = cD>cG+DELTA && power_Gauche<POWER_LIMIT;
-//    //droite a plus tourne; on ne peut plus augmenter gauche
-//    bool droiteDown = cD>cG+DELTA && power_Droite >= DELTAMOTOR ;//&& (!gaucheUp);
-//    //gauche a plus tourne; on peut augmenter droite
-//    bool droiteUp = cG>cD+DELTA && power_Droite<POWER_LIMIT;
-//    //gauche a plus tourne; on ne peut plus augmenter droite
-//    bool gaucheDown = cG>cD+DELTA && power_Droite>= DELTAMOTOR ;//&& (!droiteUp);
-//
-//    power_Droite_Correctif = 0;
-//    power_Gauche_Correctif = 0;
-//    //if (power_Gauche !=0.0 && power_Droite != 0.0){
-//    if (droiteUp) power_Droite_Correctif += DELTAMOTORCORRECTION;
-//    if (droiteDown) power_Droite_Correctif -= DELTAMOTORCORRECTION;
-//    if (gaucheUp) power_Gauche_Correctif += DELTAMOTORCORRECTION;
-//    if (gaucheDown) power_Gauche_Correctif -= DELTAMOTORCORRECTION;
-//    //}
-//
-//    // pc.printf("correction droite: %f\n",(float)(1+((cG-cD)/DELTA)));
-//    //        pc.printf("powerDroite,powerGauche: %f,%f\n",power_Droite+power_Droite_Correctif,power_Gauche+power_Gauche_Correctif);
-//    //       pc.printf("gaucheUp, gaucheDown, droiteUp, droiteDown :%d, %d, %d, %d\n",gaucheUp,gaucheDown,droiteUp,droiteDown);
-//FIN ANCIEN CODE CORRECTIF
-
+    if((lastTurn == 'q')) {
+      power_Gauche -= DELTAMOTOR;
+      power_Gauche_Correctif = 0;
+      lastTurn = '$';
+      pc.printf("Decrement gauche!\n");
+    }
     if((c == 'q') && (power_Gauche < POWER_LIMIT)) {
       power_Gauche += DELTAMOTOR;
       power_Gauche_Correctif = BASE_ACCELERATION;
-      pc.printf("Gauche Up!\n");
+      lastTurn = 'q';
+      pc.printf("Gauche Up!\n");      
     }
     if((c == 'a') && (power_Gauche > -POWER_LIMIT)) {
       power_Gauche -= DELTAMOTOR;
       power_Droite_Correctif = BASE_ACCELERATION;
       pc.printf("Gauche Down!\n");
     }
+    if((lastTurn == 'd')) {
+      power_Droite -= DELTAMOTOR;
+      power_Droite_Correctif = 0;
+      lastTurn = '$';
+      pc.printf("Decrement right!\n");
+    }
     if((c == 'd') && (power_Droite < POWER_LIMIT)) {
       power_Droite += DELTAMOTOR;
       power_Droite_Correctif = BASE_ACCELERATION;
+      lastTurn = 'd';
       pc.printf("Droite Up!\n");
     }
     if((c == 'e') && (power_Droite > -POWER_LIMIT)) {
@@ -163,8 +154,8 @@ int main() {
     if((c == 's') && (power_Droite > -POWER_LIMIT)&& (power_Gauche > -POWER_LIMIT)) {
       power_Droite -= DELTAMOTOR;
       power_Gauche -= DELTAMOTOR;
-      power_Droite_Correctif = BASE_ACCELERATION;
-      power_Gauche_Correctif = BASE_ACCELERATION;
+      power_Droite_Correctif = 0;
+      power_Gauche_Correctif = 0;
       pc.printf("Gauche Droite Down!\n");
     }
     if((c == 'b') || (c == ' ')) {
@@ -175,7 +166,7 @@ int main() {
       counterDroite1.reset();
       counterDroite2.reset();
       pc.printf("Stop!\n");
-    } 
+    }
 
     if(power_Droite>0){
       dirDroite=0;
